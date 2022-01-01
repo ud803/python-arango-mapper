@@ -16,7 +16,7 @@ def create_and_get_collection(database_obj, collection_name, edge):
     return database_obj.collection(collection_name)
 
     
-def add_persistent_index(coll_obj, fields, unique, in_background):
+def add_persistent_index(coll_obj, fields, unique, in_background=True):
     """Add persistent index to collection
     
     :parameters:
@@ -31,15 +31,17 @@ def add_persistent_index(coll_obj, fields, unique, in_background):
     return
 
 
-def add_ttl_index(coll_obj, field, seconds):
+def add_ttl_index(coll_obj, field, unique, seconds, in_background=True):
     """Add ttl index to collection. 
     
     :parameters:
     - `coll_obj`: collection object in which to add index (Arango Collection Object)
     - `field`: ttl field name to create. raw data in ttl field should be datetime object (string)
+    - `unique`: whether field sets are unique (boolean)
     - `seconds`: seconds until document expires (integer)
+    - `in_background`: whether to create index in background or not (boolean)
     """
 
-    coll_obj.add_ttl_index(fields=[field], expiry_time=seconds, in_background=True)
+    coll_obj.add_ttl_index(fields=[field], expiry_time=seconds, unique=unique, in_background=in_background)
 
     return
