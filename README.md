@@ -134,7 +134,7 @@ schemas = {'visited': {
 ### Type 4. unique_edge_from_vertex
 unique_edge_from_vertex type is an edge collection and should have `_from` and `_to` fields.
 
-It represents unique edge that stem from one vertex, but can conditionally change its `_to` vertex accordingly.
+It represents unique edge that stems from one vertex, but can conditionally change its `_to` vertex accordingly.
 
 For example, let's assume there is a `Person` collection and a `Movie` collection. Let's say `loves_most` edge collection represents one's favorite movie, and it can be changed time after time. Then, one can use `condition` field to use `min_by`, `max_by`, or `if` conditions and change `_to` field.  
 
@@ -163,13 +163,43 @@ schemas = {'loves_most': {
         'time' : 'time'
     },
     'condition': {
+        # changes '_to' field, if new document's 'time' is greater than old documents' time field.
+        # criteria field, which is 'time', would be automatically updated with new data by converter
         'max_by': {
-            'time': {
-                '_to': ('movie_id',),
-            }
+            'time': ['_to']
         }
     }
     'index': [
     ]
 }}
+```
+
+### Conditions Further Explained
+In fact, `condition` field can be used in any type of PAM mapping if it fits the usage case.
+
+Currently, there are 3 type sof conditions.
+
+- `max_by` and `min_by` are used to change certain field depending on size comparison. 
+
+Like below, you can set a key in `max_by` dict, and set a list of fields to change as values.
+
+```python
+'condition': {
+    'max_by': {
+        'field_to_set_as_comparison_criteria': ['field_to_change_1', 'field_to_change_2']
+    }
+}
+```
+
+- `if` condition is literally used as a conditional statement.
+
+It should have list of condition strings, follow AQL syntax, and will be inserted as it is. 
+
+```python
+'condition': {
+    'if': [
+        """_to : CONTAINS(OLD._to, 'hi') ? doc._to : OLD._to""",
+        """_to : CONTAINS(OLD._to, 'there') ? doc._to : OLD._to"""
+        ]
+}
 ```
