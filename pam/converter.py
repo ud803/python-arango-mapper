@@ -141,19 +141,21 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
                         '{field}' : doc.{min_by_field} < OLD.{min_by_field} ? doc.{field} : OLD.{field}
                         """.format(field=field, min_by_field=min_by_field)
 
-            if cond.get('max'):
-                if base_query:
-                    base_query += ","
-                base_query += """
-                'max_time' : doc.max_time > OLD.max_time ? doc.max_time : OLD.max_time"""
-                for field in cond.get('max'):
-                    base_query += """,
-                    '{field}' : doc.max_time > OLD.max_time ? doc.{field} : OLD.{field}
-                    """.format(field=field)
+            if cond.get('max_by'):
+                for max_by_field in cond.get('max_by'):
+                    base_query += """
+                    '{max_by_field}' : doc.{max_by_field} > OLD.{max_by_field} ? doc.{max_by_field} : OLD.{max_by_field}""".format(max_by_field=max_by_field)
+                    
+                    for field in cond.get('max_by').get(max_by_field):
+                        base_query += """,
+                        '{field}' : doc.{max_by_field} > OLD.{max_by_field} ? doc.{field} : OLD.{field}
+                        """.format(field=field, max_by_field=max_by_field)
+
             if cond.get('if'):
-                if base_query:
-                    base_query += ","
-                base_query += cond.get('if')
+                for if_clause in cond.get('if'):
+                    if base_query:
+                        base_query += ","
+                    base_query += if_clause
 
         if base_query:
             op = """
