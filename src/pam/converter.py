@@ -46,7 +46,7 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
 
     step_2 = time.time()
 
-    #2. 프레스토 커서를 순회하면서 스키마별로 업데이트할 도큐먼트를 분류함. 
+    #2. Loop Data 
 
     step_3 = time.time()
     for idx, row in enumerate(list_of_dict_data):
@@ -126,7 +126,7 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
     step_4 = time.time()
     print("...cursor iter time : {} secs".format(str(round(step_4 - step_3))))
 
-    #3. 각 스키마의 타입에 따라 기본 AQL을 세팅하고, CRUD 작업 실행
+    #3. Set Basic AQL
     for mapping in mapping_list:
         coll_def = schemas[mapping]
 
@@ -196,7 +196,7 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
             }}
             """
         if collections.get(coll_def['collection']):
-            # unique_identifier 필드 제거
+            # remove unique_identifier
             [v.pop('unique_identifier') for k, v in collections[coll_def['collection']].items()]
 
             params = {
@@ -204,7 +204,6 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
                 'op' : op,
                 'collection' : coll_def['collection']
             }
-            #celery 통해 작업 분할
             utils.arango_split_task(database_obj, target_aql, params)
             
             del collections[coll_def['collection']]

@@ -34,4 +34,4 @@ def arango_split_task(database_obj, partial_query, params, num_split=1000):
         copied['rows'] = [i for i in dict(partial_rows).values()]
         final_query = partial_query.format(**copied)
 
-        aql.execute_aql(final_query, database_obj, show_query=True)
+        aql.execute_aql(final_query, database_obj)

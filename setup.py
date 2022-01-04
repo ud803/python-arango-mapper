@@ -47,7 +47,7 @@ setup(
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",
     install_requires=install_requires,
-    version='0.1.4',
+    version='0.1.5',
     description='fast and easy-to-use python-arango mapper library',
     long_description=long_description,
     long_description_content_type="text/markdown",
