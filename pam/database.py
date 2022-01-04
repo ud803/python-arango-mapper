@@ -1,7 +1,7 @@
 from pam import client
 
 
-def create_and_get_database(database_name, username, password):
+def create_and_get_database(arango_conn, database_name, username, password):
     """Returns database object. If not exists, create a new one. Requires username & passwords
     
     :parameters:
@@ -10,8 +10,6 @@ def create_and_get_database(database_name, username, password):
     - `password`: password with database creation role (string)
     """
     
-    arango_conn = client.get_arango_conn()
-
     sys_db = arango_conn.db('_system', username=username, password=password)
 
     if not sys_db.has_database(database_name):

@@ -22,7 +22,7 @@ def execute_aql(query, database_obj, show_query=False, bind_vars=None):
     cursor = database_obj.aql.execute(query, bind_vars=bind_vars)
 
     if show_query:
-        logging.warnig(temp)
+        logging.warning(temp)
 
     logging.warning(str(cursor.statistics()))
 
