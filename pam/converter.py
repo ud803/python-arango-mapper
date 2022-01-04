@@ -14,7 +14,6 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
     
     #1. Loop mapping_list and initiate target collections & indices
     for mapping in mapping_list:
-        print(mapping)
         coll_def = schemas[mapping]
         coll_name = coll_def['collection']
         _type, _type2 = coll_def['type']
@@ -29,18 +28,17 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
 
             if cond.get('min_by'):
                 for min_by_field in cond.get('min_by'):
-                    coll_def['index'][('_key', min_by_field)] = False
+                    coll_def['index'].append({'field': ('_key', min_by_field), 'unique': False, 'ttl': False})
 
             if cond.get('max_by'):
                 for max_by_field in cond.get('max_by'):
-                    coll_def['index'][('_key', max_by_field)] = False
+                    coll_def['index'].append({'field': ('_key', max_by_field), 'unique': False, 'ttl': False})
 
             if cond.get('min_by') and coll_def.get('max_by'):
-                coll_def['index'][('_key', min_by_field, max_by_field,)] = False
+                coll_def['index'].append({'field': ('_key', min_by_field, max_by_field,), 'unique': False, 'ttl': False})
         
         # Index Initialization
         for index in coll_def['index']:
-            print(index['field'])
             if index.get('ttl'):
                 collection.add_ttl_index(coll_obj, index['field'], index['unique'], index['ttl'])
             else:
@@ -56,6 +54,7 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
             step_3 = time.time()
             logging.warning("...presto execution time : {} secs".format(str(round(step_3 - step_2))))
         
+        print(row)
         for mapping in mapping_list:
             coll_def = schemas[mapping]
 
@@ -70,31 +69,38 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
                     continue
 
             elif _type2 == 'unique_edge_on_event':
-                if not row.get(coll_def['_from']):
-                    continue
-                if not row.get(coll_def['_to']):
-                    continue
-                doc['_from'] = coll_def['_from_collection'] + '/' + row[coll_def['_from']]
-                doc['_to'] = coll_def['_to_collection'] + '/' + row[coll_def['_to']]
-                doc['_key'] = row[coll_def['_from']] + '_' + row[coll_def['_to']] + '_' + '_'.join([str(row[i]) for i in coll_def['unique_key']])
+                for field in coll_def['_from']:
+                    if not row.get(field):
+                        continue
+                for field in coll_def['_to']:
+                    if not row.get(field):
+                        continue
+
+                doc['_from'] = coll_def['_from_collection'] + '/' + '_'.join([str(row[i]) for i in coll_def['_from']])
+                doc['_to'] = coll_def['_to_collection'] + '/' + '_'.join([str(row[i]) for i in coll_def['_to']])
+                doc['_key'] = '_'.join([str(row[i]) for i in coll_def['_from']]) + '_' + '_'.join([str(row[i]) for i in coll_def['_to']]) + '_' + '_'.join([str(row[i]) for i in coll_def['unique_key']])
 
             elif _type2 == 'unique_edge_btw_vertices':
-                if not row.get(coll_def['_from']):
-                    continue
-                if not row.get(coll_def['_to']):
-                    continue
-                doc['_from'] = coll_def['_from_collection'] + '/' + row[coll_def['_from']]
-                doc['_to'] = coll_def['_to_collection'] + '/' + row[coll_def['_to']]
-                doc['_key'] = row[coll_def['_from']] + '_' + row[coll_def['_to']]
+                for field in coll_def['_from']:
+                    if not row.get(field):
+                        continue
+                for field in coll_def['_to']:
+                    if not row.get(field):
+                        continue
+                doc['_from'] = coll_def['_from_collection'] + '/' + '_'.join([str(row[i]) for i in coll_def['_from']])
+                doc['_to'] = coll_def['_to_collection'] + '/' + '_'.join([str(row[i]) for i in coll_def['_to']])
+                doc['_key'] = '_'.join([str(row[i]) for i in coll_def['_from']]) + '_' + '_'.join([str(row[i]) for i in coll_def['_to']])
 
             elif _type2 == 'unique_edge_from_vertex':
-                if not row.get(coll_def['_from']):
-                    continue
-                if not row.get(coll_def['_to']):
-                    continue
-                doc['_key'] = row[coll_def['_from']]
-                doc['_from'] = coll_def['_from_collection'] + '/' + row[coll_def['_from']]
-                doc['_to'] = coll_def['_to_collection'] + '/' + row[coll_def['_to']]
+                for field in coll_def['_from']:
+                    if not row.get(field):
+                        continue
+                for field in coll_def['_to']:
+                    if not row.get(field):
+                        continue
+                doc['_key'] = '_'.join([str(row[i]) for i in coll_def['_from']])
+                doc['_from'] = coll_def['_from_collection'] + '/' + '_'.join([str(row[i]) for i in coll_def['_from']])
+                doc['_to'] = coll_def['_to_collection'] + '/' + '_'.join([str(row[i]) for i in coll_def['_to']])
 
             if doc['_key'] is None:
                 continue
@@ -121,11 +127,8 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
     print("...cursor iter time : {} secs".format(str(round(step_4 - step_3))))
 
     #3. 각 스키마의 타입에 따라 기본 AQL을 세팅하고, CRUD 작업 실행
-    tasks = []
     for mapping in mapping_list:
         coll_def = schemas[mapping]
-
-        print(coll_def['collection'])
 
         base_query = ""
 
@@ -193,6 +196,9 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
             }}
             """
         if collections.get(coll_def['collection']):
+            # unique_identifier 필드 제거
+            [v.pop('unique_identifier') for k, v in collections[coll_def['collection']].items()]
+
             params = {
                 'rows' : collections[coll_def['collection']],
                 'op' : op,

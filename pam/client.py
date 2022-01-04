@@ -65,15 +65,15 @@ class CustomHTTPClient(HTTPClient):
         )
 
 
-def get_arango_conn(host):
+def get_arango_conn(hosts):
     """Returns ArangoDB Client Connection Object
     
     :parameters:
-    - `host`: host of ArangoDB (string)
+    - `hosts`: host of ArangoDB (string)
     """
 
     arango_conn = ArangoClient(
-        hosts=host,
+        hosts=hosts,
         http_client=CustomHTTPClient()
     )
 

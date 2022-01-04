@@ -12,9 +12,9 @@
 pip install python-arango-mapper
 ```
 
-## Getting Started
+## WHAT PAM IS
 
-PAM(`python-arango-mapper`) is an easy-to-use arangoDB mapper built upon great library : [Python-Arango](https://github.com/ArangoDB-Community/python-arango/blob/main/README.md).
+PAM(`python-arango-mapper`) is an easy-to-use arangoDB mapper built upon great library ❤ : [Python-Arango](https://github.com/ArangoDB-Community/python-arango/blob/main/README.md).
 
 With one-time schema declaration, your object-typed data can be easily converted into ArangoDB data. 
 
@@ -22,6 +22,117 @@ With one-time schema declaration, your object-typed data can be easily converted
 
 PAM currently has **4 schema types,** and the examples are like follows:
 
+
+## GETTING STARTED
+Usage examples:
+
+```python
+from pam import client, database, converter
+
+# Example of Data. Intentionally put duplicated data.
+data = [
+    {'my_name_is': 'Scott', 'title': 'HarryPotter 1', 'score': 5, 'time': '2022-01-01'},
+    {'my_name_is': 'Scott', 'title': 'HarryPotter 2', 'score': 8, 'time': '2022-01-02'},
+    {'my_name_is': 'Scott', 'title': 'HarryPotter 2', 'score': 8, 'time': '2022-01-02'},
+    {'my_name_is': 'Scott', 'title': 'HarryPotter 2', 'score': 8, 'time': '2022-01-02'},
+    {'my_name_is': 'Scott', 'title': 'HarryPotter 3', 'score': 6, 'time': '2022-01-03'},
+    {'my_name_is': 'Scott', 'title': 'HarryPotter 3', 'score': 6, 'time': '2022-01-03'},
+    {'my_name_is': 'Marry', 'title': 'Starwars 1', 'score': 3, 'time': '2022-01-04'},
+    {'my_name_is': 'Marry', 'title': 'Starwars 1', 'score': 3, 'time': '2022-01-04'},
+    {'my_name_is': 'Marry', 'title': 'Starwars 1', 'score': 3, 'time': '2022-01-04'},
+    {'my_name_is': 'Marry', 'title': 'Starwars 2', 'score': 5, 'time': '2022-01-05'},
+    {'my_name_is': 'Marry', 'title': 'Starwars 2', 'score': 5, 'time': '2022-01-05'},
+    {'my_name_is': 'Marry', 'title': 'Starwars 2', 'score': 5, 'time': '2022-01-05'}
+]
+
+schemas = {
+    # Type 1
+    'Person': {
+        'type': ('vertex', 'unique_vertex'),
+        'collection': 'Person',
+        'unique_key': ('my_name_is',),
+        'fields': {
+            'name': 'my_name_is'
+        },
+        'index': [
+            {'field' : ('name',), 'unique' : True, 'ttl' : False}
+        ]
+    },
+    # Type 1
+    'Movie': {
+        'type': ('vertex', 'unique_vertex'),
+        'collection': 'Movie',
+        'unique_key': ('title',),
+        'fields': {
+            'title': 'title'
+        },
+        'index': [
+            {'field' : ('title',), 'unique' : True, 'ttl' : False}
+        ]
+    },
+    # Type 2
+    'has_ever_watched': {
+        'type': ('edge', 'unique_edge_btw_vertices'),
+        'collection': 'has_ever_watched',
+        '_from_collection': 'Person',
+        '_from': ('my_name_is',),
+        '_to_collection': 'Movie',
+        '_to': ('title',),
+        'fields': {
+        },
+        'index': []
+    },
+    # Type 3
+    'watched': {
+        'type': ('edge', 'unique_edge_on_event'),
+        'collection': 'watched',
+        'unique_key': ('time',),
+        '_from_collection': 'Person',
+        '_from': ('my_name_is',),
+        '_to_collection': 'Movie',
+        '_to': ('title',),
+        'fields': {
+            'time': 'time',
+            'score': 'score'
+        },
+        'index': []
+    },
+    # Type 4
+    'loves_most': {
+        'type': ('edge', 'unique_edge_from_vertex'),
+        'collection': 'loves_most',
+        '_from_collection': 'Person',
+        '_from': ('my_name_is',),
+        '_to_collection': 'Movie',
+        '_to': ('title',),
+        'fields': {
+            'time': 'time',
+            'score': 'score'
+        },
+        'condition': {
+            # If score has max value, change favorite movie
+            'max_by': {
+                'score': ['_to']
+            }
+        },
+        'index': []
+    },
+    'some_redundant_schema_used_elsewhere': {
+
+
+    }
+}
+
+arango_conn = client.get_arango_conn(hosts="http://localhost:8529")
+database_obj = database.create_and_get_database(arango_conn, 'favorite_movie', 'root', 'password')
+mapping_list = ['Person', 'Movie', 'has_ever_watched', 'watched', 'loves_most']
+converter.arango_converter(data, database_obj, schemas, mapping_list)
+```
+
+
+## TYPES OF SCHEMA
+
+There are yet no official documentation of this library. So for now, this would be the only documentation to follow. 🤢
 
 ### Type 1. unique_vertex
 unique_vertex type is a vertex mapper usually used to make one unique vertex entity.
