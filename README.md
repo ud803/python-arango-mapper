@@ -18,7 +18,7 @@ PAM(`python-arango-mapper`) is an easy-to-use arangoDB mapper built upon great l
 
 With one-time schema declaration, your object-typed data can be easily converted into ArangoDB data. 
 
-![python-arango-mapper](https://github.com/ud803/udamata/blob/main/python-arango-mapper.png)
+<img src="https://github.com/ud803/udamata/blob/main/python-arango-mapper.png" width="200" height="200" />
 
 PAM currently has **4 schema types,** and the examples are like follows:
 
