@@ -44,7 +44,7 @@ setup(
     name='python-arango-mapper',
     packages=find_packages(include=['pam']),
     install_requires=install_requires,
-    version='0.1.1',
+    version='0.1.2',
     description='fast and easy-to-use python-arango mapper library',
     long_description=long_description,
     long_description_content_type="text/markdown",
