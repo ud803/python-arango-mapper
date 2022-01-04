@@ -1,4 +1,5 @@
 from setuptools import find_packages, setup
+import setuptools
 
 install_requires = [
     'bleach==4.1.0',
@@ -42,9 +43,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='python-arango-mapper',
-    packages=find_packages(include=['pam']),
+    package_dir={"": "src"},
+    packages=setuptools.find_packages(where="src"),
+    python_requires=">=3.6",
     install_requires=install_requires,
-    version='0.1.2',
+    version='0.1.4',
     description='fast and easy-to-use python-arango mapper library',
     long_description=long_description,
     long_description_content_type="text/markdown",
