@@ -18,7 +18,7 @@ def dict_spliter(target_dict, num_split=1000):
     return result
 
 
-def arango_split_task(database_obj, partial_query, params, num_split=1000):
+def arango_split_task(database_obj, partial_query, params, num_split=1000, show_query=False):
     """Split AQLs into chunks in order to adjust performance. 1000 worked best for me
     It is a system function used in converter. Users may not use this directly.
     
@@ -34,4 +34,4 @@ def arango_split_task(database_obj, partial_query, params, num_split=1000):
         copied['rows'] = [i for i in dict(partial_rows).values()]
         final_query = partial_query.format(**copied)
 
-        aql.execute_aql(final_query, database_obj)
+        aql.execute_aql(final_query, database_obj, show_query=show_query)

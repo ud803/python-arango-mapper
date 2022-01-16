@@ -6,8 +6,16 @@ from pam import collection
 from pam import utils
 
 
-def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
-    """ 
+def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list, num_split=1000, show_query=False):
+    """Get list of dict data, and map those data into ArangoDB according to the schemas provided. mapping_list should also be provided.
+
+    :parameters:
+    - `list_of_dict_data`: list of dictionaries that will be used as raw data (list of dicts)
+    - `database_obj`: database object in which to execute aql (Arango Database Object)
+    - `schemas`: schemas used to map raw data into Graph objects. Read the instructions in the github or PyPI. (dict of dicts)
+    - `mapping_list`: list of schema to use. Used to use only specified schemas. (list of strings)
+    - `num_split`: size of batch operation. recommended to use default size (int)
+    - `show_query`: whether to show final AQL query used to upload data into ArangoDB. Used to debug queries. Use with small chunks. (boolean)
     """
 
     collections = {}
@@ -52,9 +60,8 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
     for idx, row in enumerate(list_of_dict_data):
         if idx == 0:
             step_3 = time.time()
-            logging.warning("...presto execution time : {} secs".format(str(round(step_3 - step_2))))
+            logging.warning("...init time : {} secs".format(str(round(step_3 - step_2))))
         
-        print(row)
         for mapping in mapping_list:
             coll_def = schemas[mapping]
 
@@ -63,7 +70,7 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
             _type, _type2 = coll_def['type']
 
             ### _key, _from, _to Init
-            if _type2 == 'unique_vertex':
+            if _type2 == 'unique_vertex':                
                 doc['_key'] = '_'.join([str(row[i]) for i in coll_def['unique_key']])
                 if doc['_key'] == 'None':
                     continue
@@ -124,10 +131,12 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
             collections[coll_def['collection']][doc['unique_identifier']] = doc
 
     step_4 = time.time()
-    print("...cursor iter time : {} secs".format(str(round(step_4 - step_3))))
+    logging.warning("...cursor iter time : {} secs".format(str(round(step_4 - step_3))))
 
     #3. Set Basic AQL
     for mapping in mapping_list:
+        logging.warning(mapping)
+
         coll_def = schemas[mapping]
 
         base_query = ""
@@ -177,7 +186,8 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
             IN {collection} 
 
             OPTIONS {{
-                exclusive : true
+                exclusive : true,
+                ignoreErrors : true
             }}"""
 
         else:
@@ -192,7 +202,9 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
 
             OPTIONS {{
                 overwriteMode : "ignore",
-                exclusive : true
+                exclusive : true,
+                ignoreErrors : true
+
             }}
             """
         if collections.get(coll_def['collection']):
@@ -204,9 +216,9 @@ def arango_converter(list_of_dict_data, database_obj, schemas, mapping_list):
                 'op' : op,
                 'collection' : coll_def['collection']
             }
-            utils.arango_split_task(database_obj, target_aql, params)
+            utils.arango_split_task(database_obj, target_aql, params, num_split=num_split, show_query=show_query)
             
             del collections[coll_def['collection']]
-    
+
     step_5 = time.time()
-    print("...Arango Op time : {} secs".format(str(round(step_5 - step_4, 3))))
+    logging.warning("...Arango Op time : {} secs".format(str(round(step_5 - step_4, 3))))
