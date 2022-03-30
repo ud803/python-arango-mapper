@@ -1,4 +1,3 @@
-from pam import database
 
 
 def create_and_get_collection(database_obj, collection_name, edge):

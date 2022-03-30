@@ -1,5 +1,5 @@
 import itertools
-from pam import aql, database
+from pam import aql
 
 
 def dict_spliter(target_dict, num_split=1000):

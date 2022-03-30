@@ -1,5 +1,5 @@
 import logging
-from pam import database
+
 
 def execute_aql(query, database_obj, show_query=False, bind_vars=None):
     """Execute AQL with bind_vars and return ArangoDB cursor

@@ -1,4 +1,3 @@
-from pam import client
 
 
 def create_and_get_database(arango_conn, database_name, username, password):
