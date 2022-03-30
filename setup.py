@@ -15,7 +15,6 @@ install_requires = [
     'jeepney==0.7.1',
     'keyring==23.4.0',
     'packaging==21.3',
-    'pkg_resources==0.0.0',
     'pkginfo==1.8.2',
     'pycparser==2.21',
     'Pygments==2.10.0',
